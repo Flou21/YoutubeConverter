@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Youtube\DownloadTypes;
+use App\VideoStream;
+use App\YoutubeData;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -29,17 +31,30 @@ class YoutubeController extends Controller
 
         $title = substr($result, strpos($result, 'Deleting original file') + 23, strlen($result) - strpos($result, '(pass -k to') - 60);
 
+        $data = new YoutubeData();
+        $data->title = $title;
+        $data->filename = $downloadId;
+        $data->save();
+
         return new Response(['download_link' => $downloadLink, 'title' => $title, 'uid' => $downloadId]);
     }
 
-    public function download(Request $request): Response
+    public function download(Request $request)
     {
         $body = json_decode($request->getContent());
         $uid = $body->uid;
-        $video = Storage::disk('local')->get("./youtube/".$uid);
-        $response = new Response($video, 200);
-        $response->header('Content-Type', 'video/mp4');
-        return $response;
+
+        // $tempVideo = tempnam(sys_get_temp_dir(), $uid);
+        // copy($path, $tempVideo);
+
+
+        $path = public_path('./youtube/' . $uid);
+
+        $stream = new VideoStream($path);
+
+        return response()->stream(function() use ($stream) {
+           $stream->start();
+        });
     }
 
     public function types()

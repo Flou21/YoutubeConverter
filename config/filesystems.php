@@ -64,6 +64,11 @@ return [
             'url' => env('AWS_URL'),
         ],
 
+        'youtube' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/youtube')
+        ]
+
     ],
 
     /*
